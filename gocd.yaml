@@ -1,0 +1,46 @@
+format_version: 10
+
+pipelines:
+  ansible-deploy:
+    group: deployment
+    label_template: "${COUNT}"
+    materials:
+      ansible-repo:
+        git: https://github.com/your-org/gocd-pipelines.git
+        branch: main
+
+    stages:
+      - deploy-dev:
+          approval:
+            type: success
+          jobs:
+            deploy:
+              tasks:
+                - exec:
+                    command: ansible-playbook
+                    arguments:
+                      - ansible/inventory.ini
+                      - ansible/playbook.yml
+
+      - approve-prod:
+          approval:
+            type: manual
+          jobs:
+            approval:
+              tasks:
+                - exec:
+                    command: echo
+                    arguments:
+                      - "Approved for prod"
+
+      - deploy-prod:
+          approval:
+            type: success
+          jobs:
+            deploy:
+              tasks:
+                - exec:
+                    command: ansible-playbook
+                    arguments:
+                      - ansible/inventory.ini
+                      - ansible/playbook.yml
